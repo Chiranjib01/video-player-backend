@@ -2,6 +2,7 @@ import express from "express";
 import {
   authUser,
   getUser,
+  getUserById,
   logoutUser,
   signUpUser,
   subscribe,
@@ -14,6 +15,7 @@ const router = express.Router();
 router.post("/signup", signUpUser);
 router.post("/auth", authUser);
 router.post("/logout", logoutUser);
+router.get("/user/:userId", getUserById);
 router.route("/profile").get(protectUser, getUser);
 router.route("/profile").patch(protectUser, updateUser);
 router.route("/:channelId/subscribe").post(protectUser, subscribe);

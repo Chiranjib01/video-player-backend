@@ -7,9 +7,9 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     profilePicture: { type: String, default: "/no-profile-picture.png" },
-    subscribers: [{ channelId: { type: String, ref: "User" } }],
+    subscribers: [{ channelId: { type: String } }],
     subscriberCount: { type: Number, default: 0 },
-    subscribed: [{ channelId: { type: String, ref: "User" } }],
+    subscribed: [{ channelId: { type: String } }],
   },
   { timestamps: true }
 );

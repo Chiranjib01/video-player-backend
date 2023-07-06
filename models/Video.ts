@@ -9,7 +9,7 @@ const videoSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
-    likes: [{ userId: String, ref: "User" }],
+    likes: [{ userId: String }],
     url: { type: String, required: true },
     thumbnail: { type: String, required: true },
     description: { type: String, required: true },

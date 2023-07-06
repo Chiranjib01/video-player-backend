@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
 import User from "../models/User.js";
 import generateTokenUser from "../utils/generateToken.user.js";
+import mongoose from "mongoose";
 
 // @method POST /api/users/signup
 export const signUpUser = asyncHandler(async (req, res) => {
@@ -65,6 +66,7 @@ export const logoutUser = asyncHandler(async (req, res) => {
   res.status(200).json({ message: "User Logged Out" });
 });
 
+// get current logged in user
 // @method GET /api/users
 export const getUser = asyncHandler(async (req: any, res) => {
   const user = {
@@ -76,6 +78,15 @@ export const getUser = asyncHandler(async (req: any, res) => {
     subscriberCount: req.subscriberCount,
     subscribed: req.subscribed,
   };
+  res.status(200).json(user);
+});
+
+// @method GET /api/users/user/:userId
+export const getUserById = asyncHandler(async (req: any, res) => {
+  const user = await User.findById(req.params.userId);
+  if (!user) {
+    res.status(404).json({ message: "User Not Found" });
+  }
   res.status(200).json(user);
 });
 
@@ -108,37 +119,45 @@ export const updateUser = asyncHandler(async (req: any, res) => {
   }
 });
 
-// @method POST /api/:channelId/subscribe
+// @method POST /api/users/:channelId/subscribe
 export const subscribe = asyncHandler(async (req: any, res) => {
   const { channelId } = req.params;
   const userId = req.user._id;
   const user = await User.findById(userId);
-  const channel = await User.findById(channelId);
   if (!user) {
     res.status(404);
     throw new Error("User Not Found");
   }
+  const exists1 = await User.find({ "subscribed.channelId": channelId });
+  const exists2 = await User.find({ "subscribers.channelId": userId });
+  if (exists1.length !== 0 || exists2.length !== 0) {
+    res.json({ message: "already subscribed" });
+    return;
+  }
+  user.subscribed = [...user.subscribed, { channelId }];
+  await user.save();
+
+  const channel = await User.findById(channelId);
   if (!channel) {
     res.status(404);
     throw new Error("Channel Not Found");
   }
-  user.subscribed = [...user.subscribed, channelId];
-  channel.subscribers = [...channel.subscribers, userId];
+  channel.subscribers = [...channel.subscribers, { channelId: userId }];
   channel.subscriberCount = channel.subscriberCount + 1;
-  const updatedUser = await user.save();
   const updatedChannel = await channel.save();
 
+  const newUser = await User.findById(userId);
   res.status(200).json({
     success: true,
     message: "Channel Subscribed",
     user: {
-      _id: updatedUser._id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      profilePicture: updatedUser.profilePicture,
-      subscribers: updatedUser.subscribers,
-      subscriberCount: updatedUser.subscriberCount,
-      subscribed: updatedUser.subscribed,
+      _id: newUser._id,
+      name: newUser.name,
+      email: newUser.email,
+      profilePicture: newUser.profilePicture,
+      subscribers: newUser.subscribers,
+      subscriberCount: newUser.subscriberCount,
+      subscribed: newUser.subscribed,
     },
     channel: {
       _id: updatedChannel._id,
@@ -152,39 +171,49 @@ export const subscribe = asyncHandler(async (req: any, res) => {
   });
 });
 
-// @method POST /api/:channelId/unsubscribe
+// @method POST /api/users/:channelId/unsubscribe
 export const unsubscribe = asyncHandler(async (req: any, res) => {
   const { channelId } = req.params;
   const userId = req.user._id;
   const user = await User.findById(userId);
-  const channel = await User.findById(channelId);
   if (!user) {
     res.status(404);
     throw new Error("User Not Found");
   }
+  const exists1 = await User.find({ "subscribed.channelId": channelId });
+  const exists2 = await User.find({ "subscribers.channelId": userId });
+  if (exists1.length === 0 || exists2.length == 0) {
+    res.json({ message: "already unsubscribed" });
+    return;
+  }
+  user.subscribed = user.subscribed.filter(
+    (item: any) => item.channelId !== channelId
+  );
+  await user.save();
+
+  const channel = await User.findById(channelId);
   if (!channel) {
     res.status(404);
     throw new Error("Channel Not Found");
   }
-  user.subscribed = user.subscribed.filter((id: string) => id !== channelId);
   channel.subscribers = channel.subscribers.filter(
-    (id: string) => id !== userId
+    (item: any) => item.channelId !== userId.toString()
   );
   channel.subscriberCount = channel.subscriberCount - 1;
-  const updatedUser = await user.save();
   const updatedChannel = await channel.save();
 
+  const newUser = await User.findById(userId);
   res.status(200).json({
     success: true,
     message: "Channel Unsubscribed",
     user: {
-      _id: updatedUser._id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      profilePicture: updatedUser.profilePicture,
-      subscribers: updatedUser.subscribers,
-      subscriberCount: updatedUser.subscriberCount,
-      subscribed: updatedUser.subscribed,
+      _id: newUser._id,
+      name: newUser.name,
+      email: newUser.email,
+      profilePicture: newUser.profilePicture,
+      subscribers: newUser.subscribers,
+      subscriberCount: newUser.subscriberCount,
+      subscribed: newUser.subscribed,
     },
     channel: {
       _id: updatedChannel._id,
