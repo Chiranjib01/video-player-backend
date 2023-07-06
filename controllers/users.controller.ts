@@ -130,14 +130,10 @@ export const subscribe = asyncHandler(async (req: any, res) => {
     res.status(404);
     throw new Error("User Not Found");
   }
-  const exists1: any = await User.find({ "subscribed.channelId": channelId });
-  const exists2: any = await User.find({ "subscribers.channelId": userId });
-  if (
-    (exists1 && exists1.subscribers && exists1.subscribers.length !== 0) ||
-    (exists2 && exists2.subscribers && exists2.subscribed.length !== 0)
-  ) {
-    res.status(400).json({ message: "already subscribed" });
-    return;
+  for (let channel of user.subscribed) {
+    if (channel.channelId === channelId) {
+      res.status(400).json({ message: "already subscribed" });
+    }
   }
   user.subscribed = [...user.subscribed, { channelId }];
   await user.save();
