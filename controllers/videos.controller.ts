@@ -13,6 +13,7 @@ export const createVideo = asyncHandler(async (req, res) => {
     tags,
     userId,
     likes: [],
+    dislikes: [],
   });
   if (video) {
     res.status(201).json({
@@ -24,6 +25,7 @@ export const createVideo = asyncHandler(async (req, res) => {
       userId: video.userId,
       tags: video.tags,
       likes: video.likes,
+      dislikes: video.dislikes,
     });
   } else {
     res.status(400);
@@ -80,4 +82,78 @@ export const getVideosByQuery = asyncHandler(async (req: any, res) => {
     strength: 2,
   });
   res.json(videos);
+});
+
+// @method GET /api/videos/:videoId/like
+export const likeVideoByVideoId = asyncHandler(async (req: any, res) => {
+  const userId = req?.user?._id;
+  if (!userId) {
+    res.status(403).json({ message: "unauthorized" });
+  }
+  const video = await Video.findById(req.params.videoId);
+  if (!video) {
+    res.status(404).json({ message: "video not found" });
+  }
+  if (video.likes.includes(userId.toString())) {
+    res.status(400).json({ message: "already liked" });
+  }
+  video.likes = [...video.likes, userId.toString()];
+  const newVideo = await video.save();
+  res.status(200).json(newVideo);
+});
+
+// @method GET /api/videos/:videoId/unlike
+export const unlikeVideoByVideoId = asyncHandler(async (req: any, res) => {
+  const userId = req?.user?._id;
+  if (!userId) {
+    res.status(403).json({ message: "unauthorized" });
+  }
+  const video = await Video.findById(req.params.videoId);
+  if (!video) {
+    res.status(404).json({ message: "video not found" });
+  }
+  if (!video.likes.includes(userId.toString())) {
+    res.status(400).json({ message: "not liked" });
+  }
+  video.likes = video.likes.filter((id: string) => id !== userId.toString());
+  const newVideo = await video.save();
+  res.status(200).json(newVideo);
+});
+
+// @method GET /api/videos/:videoId/dislike
+export const dislikeVideoByVideoId = asyncHandler(async (req: any, res) => {
+  const userId = req?.user?._id;
+  if (!userId) {
+    res.status(403).json({ message: "unauthorized" });
+  }
+  const video = await Video.findById(req.params.videoId);
+  if (!video) {
+    res.status(404).json({ message: "video not found" });
+  }
+  if (video.dislikes.includes(userId.toString())) {
+    res.status(400).json({ message: "already disliked" });
+  }
+  video.dislikes = [...video.dislikes, userId.toString()];
+  const newVideo = await video.save();
+  res.status(200).json(newVideo);
+});
+
+// @method GET /api/videos/:videoId/undislike
+export const undislikeVideoByVideoId = asyncHandler(async (req: any, res) => {
+  const userId = req?.user?._id;
+  if (!userId) {
+    res.status(403).json({ message: "unauthorized" });
+  }
+  const video = await Video.findById(req.params.videoId);
+  if (!video) {
+    res.status(404).json({ message: "video not found" });
+  }
+  if (!video.dislikes.includes(userId.toString())) {
+    res.status(400).json({ message: "not disliked" });
+  }
+  video.dislikes = video.dislikes.filter(
+    (id: string) => id !== userId.toString()
+  );
+  const newVideo = await video.save();
+  res.status(200).json(newVideo);
 });

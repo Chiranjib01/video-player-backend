@@ -134,7 +134,7 @@ export const subscribe = asyncHandler(async (req: any, res) => {
     (exists1 && exists1.subscribers && exists1.subscribers.length !== 0) ||
     (exists2 && exists2.subscribers && exists2.subscribed.length !== 0)
   ) {
-    res.json({ message: "already subscribed" });
+    res.status(400).json({ message: "already subscribed" });
     return;
   }
   user.subscribed = [...user.subscribed, { channelId }];
@@ -186,7 +186,7 @@ export const unsubscribe = asyncHandler(async (req: any, res) => {
   const exists1 = await User.find({ "subscribed.channelId": channelId });
   const exists2 = await User.find({ "subscribers.channelId": userId });
   if (exists1.length === 0 || exists2.length === 0) {
-    res.json({ message: "already unsubscribed" });
+    res.status(400).json({ message: "already unsubscribed" });
     return;
   }
   user.subscribed = user.subscribed.filter(
