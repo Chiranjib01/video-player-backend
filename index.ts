@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import db from "./config/db.js";
 import usersRouter from "./routes/users.route.js";
 import videosRouter from "./routes/videos.route.js";
+import commentsRouter from "./routes/comments.route.js";
 import { notFound, errorHandler } from "./middleware/error.middleware.js";
 import { FRONTEND_URL, MONGODB_URI } from "./utils/constants.js";
 
@@ -26,6 +27,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use("/api/users", usersRouter);
 app.use("/api/videos", videosRouter);
+app.use("/api/comments", commentsRouter);
 
 app.get("/", (_, res) => {
   res.json({
