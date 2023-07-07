@@ -21,7 +21,7 @@ const videoSchema = new mongoose.Schema(
   }
 );
 
-videoSchema.index({ title: "text", description: "text" });
+videoSchema.index({ title: "text", description: "text", tags: "text" });
 
 const Video = mongoose.models.Video || mongoose.model("Video", videoSchema);
 
