@@ -4,9 +4,11 @@ import {
   deleteVideo,
   dislikeVideoByVideoId,
   getAllVideos,
+  getLikedVideosOfCurrentUser,
   getVideoByVideoId,
   getVideosByQuery,
   getVideosByUserId,
+  getVideosOfCurrentUser,
   likeVideoByVideoId,
   undislikeVideoByVideoId,
   unlikeVideoByVideoId,
@@ -16,6 +18,8 @@ const router = express.Router();
 
 router.get("/", getAllVideos);
 router.get("/search", getVideosByQuery);
+router.route("/me").get(protectUser, getVideosOfCurrentUser);
+router.route("/liked/me").get(protectUser, getLikedVideosOfCurrentUser);
 router.get("/:videoId", getVideoByVideoId);
 router.get("/user/:userId", getVideosByUserId);
 router.route("/create").post(protectUser, createVideo);

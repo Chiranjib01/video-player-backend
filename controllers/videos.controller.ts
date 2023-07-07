@@ -56,6 +56,27 @@ export const getAllVideos = asyncHandler(async (req: any, res) => {
   res.status(200).json(newVideos);
 });
 
+// @method GET /api/videos/me
+export const getVideosOfCurrentUser = asyncHandler(async (req: any, res) => {
+  const userId = req.user?._id;
+  const videos = await Video.find({ userId }).sort({ createdAt: -1 });
+  res.status(200).json(videos);
+});
+
+// @method GET /api/videos/liked/me
+export const getLikedVideosOfCurrentUser = asyncHandler(
+  async (req: any, res) => {
+    const userId = req.user?._id;
+    const user = await User.findById(userId);
+    if (!user) {
+      res.status(404).json({ message: "user not found" });
+      return;
+    }
+    const videos = await Video.find({ likes: userId }).sort({ createdAt: -1 });
+    res.status(200).json(videos);
+  }
+);
+
 // @method GET /api/videos/user/:userId
 export const getVideosByUserId = asyncHandler(async (req, res) => {
   const videos = await Video.find({
